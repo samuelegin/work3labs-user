@@ -150,15 +150,6 @@ export default function UserResetPasswordClient() {
       className="min-h-screen bg-paper flex flex-col relative overflow-hidden mesh-green-tr mesh-blue-bl"
       style={{ fontFamily: 'Outfit, sans-serif' }}
     >
-      <div className="absolute top-5 left-5 sm:top-7 sm:left-7 z-10">
-        <Link
-          href="/auth/login"
-          className="flex items-center gap-2 font-mono text-[10px] tracking-[0.1em] uppercase text-[#BBB] hover:text-ink transition-colors"
-        >
-          <i className="bi bi-arrow-left text-[11px]" />
-          <span className="hidden sm:inline">Back to login</span>
-        </Link>
-      </div>
 
       <div className="flex-1 flex items-center justify-center px-4 py-16 sm:py-20">
         <div
