@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { userLogin, userLoginWithWallet } from '@/services/api'
 import { useWallet } from '@/hooks/useWallet'
 
@@ -80,7 +79,7 @@ function TabBar({ active, onChange }) {
 export default function UserLoginClient() {
   const router = useRouter()
   const emailRef = useRef(null)
-  const { address, isConnected, isConnecting, ensureBase, signLoginMessage } = useWallet()
+  const { address, isConnected, isConnecting, openModal, ensureBase, signLoginMessage, disconnect } = useWallet()
 
   const [tab, setTab] = useState('email')
   const [email, setEmail] = useState('')
@@ -94,6 +93,13 @@ export default function UserLoginClient() {
   useEffect(() => {
     if (tab === 'email') setTimeout(() => emailRef.current?.focus(), 80)
   }, [tab])
+
+  // When wallet becomes connected while on wallet tab, auto-trigger sign+verify
+  useEffect(() => {
+    if (tab === 'wallet' && isConnected && address && walletStep === 'awaiting_connection') {
+      runSignAndVerify(address)
+    }
+  }, [isConnected, address, tab, walletStep])
 
   function saveSession(data) {
     if (data?.token) {
@@ -133,12 +139,8 @@ export default function UserLoginClient() {
     saveSession(data)
   }
 
-  // Wallet login — wallet already connected via RainbowKit ConnectButton
-  const handleWalletLogin = useCallback(async () => {
-    if (!isConnected || !address) {
-      setWalletError('Connect your wallet first using the button above.')
-      return
-    }
+  // Sign + verify with a known address — called after wallet is connected
+  async function runSignAndVerify(addr) {
     setWalletError('')
     setWalletStep('ensuring_base')
 
@@ -146,11 +148,11 @@ export default function UserLoginClient() {
     if (baseResult.error) { setWalletError(baseResult.error); setWalletStep('error'); return }
 
     setWalletStep('signing')
-    const { signature, message, error: signError } = await signLoginMessage(address)
+    const { signature, message, error: signError } = await signLoginMessage(addr)
     if (signError) { setWalletError(signError); setWalletStep('error'); return }
 
     setWalletStep('verifying')
-    const { data, error } = await userLoginWithWallet({ walletAddress: address, signature, message })
+    const { data, error } = await userLoginWithWallet({ walletAddress: addr, signature, message })
     if (error) {
       const msg =
         error.toLowerCase().includes('not found') || error.includes('404')
@@ -163,14 +165,35 @@ export default function UserLoginClient() {
     }
     setWalletStep('idle')
     saveSession(data)
-  }, [isConnected, address, ensureBase, signLoginMessage])
+  }
 
-  const walletBusy = ['ensuring_base', 'signing', 'verifying'].includes(walletStep)
-  const walletStepLabel = {
+  // Single button handler — if already connected, sign immediately.
+  // If not connected, open the RainbowKit modal and wait for connection.
+  const handleWalletButton = useCallback(async () => {
+    setWalletError('')
+
+    if (isConnected && address) {
+      await runSignAndVerify(address)
+      return
+    }
+
+    // Open RainbowKit modal — runSignAndVerify fires via useEffect once connected
+    setWalletStep('awaiting_connection')
+    const { error } = await openModal()
+    if (error) {
+      setWalletError(error)
+      setWalletStep('error')
+    }
+  }, [isConnected, address, openModal])
+
+  const walletBusy = ['awaiting_connection', 'ensuring_base', 'signing', 'verifying'].includes(walletStep)
+
+  const walletButtonLabel = {
+    awaiting_connection: 'Waiting for wallet…',
     ensuring_base: 'Switching to Base…',
     signing: 'Sign the message in your wallet…',
     verifying: 'Verifying…',
-  }[walletStep]
+  }[walletStep] ?? 'Sign in with wallet'
 
   return (
     <div
@@ -232,7 +255,7 @@ export default function UserLoginClient() {
               )}
 
               {tab === 'wallet' && (
-                <div className="space-y-4" style={{ animation: 'up 0.25s both' }}>
+                <div className="space-y-3" style={{ animation: 'up 0.25s both' }}>
                   {walletError && (
                     <div role="alert" className="flex items-start gap-3 bg-red-50 border border-red-100 rounded-[10px] px-4 py-3.5">
                       <i className="bi bi-shield-exclamation text-red-500 text-[15px] flex-shrink-0 mt-0.5" />
@@ -243,34 +266,33 @@ export default function UserLoginClient() {
                   {walletBusy && (
                     <div className="flex items-center gap-3 bg-[#F4FAF7] border border-green-dark/10 rounded-[10px] px-4 py-3.5" style={{ animation: 'up 0.2s both' }}>
                       <Spinner light={false} />
-                      <p className="text-[13px] font-light text-[#555]">{walletStepLabel}</p>
+                      <p className="text-[13px] font-light text-[#555]">{walletButtonLabel}</p>
                     </div>
                   )}
 
-                  {/* RainbowKit connect button — opens modal with all wallets */}
-                  <div className="flex justify-center">
-                    <ConnectButton
-                      chainStatus="icon"
-                      showBalance={false}
-                      accountStatus="address"
-                    />
-                  </div>
-
-                  {isConnected && (
+                  {/* Show connected address when wallet is linked */}
+                  {isConnected && address && !walletBusy && (
                     <div className="flex items-center gap-2 bg-[#F4FAF7] border border-green-dark/15 rounded-[10px] px-4 py-3">
                       <span className="w-2 h-2 rounded-full bg-green-dark flex-shrink-0" />
-                      <p className="text-[12.5px] font-light text-green-dark truncate">{address}</p>
+                      <p className="text-[12.5px] font-light text-green-dark truncate flex-1">{address}</p>
+                      <button
+                        type="button"
+                        onClick={() => disconnect()}
+                        className="font-mono text-[9px] tracking-[0.06em] uppercase text-[#CCC] hover:text-red-400 transition-colors bg-transparent border-none cursor-pointer p-0 flex-shrink-0"
+                      >
+                        Change
+                      </button>
                     </div>
                   )}
 
-                  <p className="text-[11.5px] font-light text-[#CCC]">
+                  <p className="text-[11.5px] font-light text-[#CCC] leading-relaxed">
                     Signed up with email? Use the Email tab, then link your wallet in your profile.
                   </p>
                 </div>
               )}
             </div>
 
-            <div className="px-7 pb-7 space-y-2.5">
+            <div className="px-7 pb-7">
               {tab === 'email' ? (
                 <button
                   onClick={handleEmailSubmit}
@@ -281,11 +303,16 @@ export default function UserLoginClient() {
                 </button>
               ) : (
                 <button
-                  onClick={handleWalletLogin}
-                  disabled={walletBusy || !isConnected}
+                  onClick={handleWalletButton}
+                  disabled={walletBusy}
                   className="w-full flex items-center justify-center gap-2.5 bg-ink text-paper py-3.5 rounded-[10px] font-sans text-[14px] font-medium tracking-[-0.01em] hover:bg-[#1A1A1A] transition-colors border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {walletBusy ? <><Spinner />{walletStepLabel}</> : <><i className="bi bi-box-arrow-in-right text-[15px]" />Sign in with wallet</>}
+                  {walletBusy
+                    ? <><Spinner />{walletButtonLabel}</>
+                    : isConnected
+                    ? <><i className="bi bi-box-arrow-in-right text-[15px]" />Sign in with wallet</>
+                    : <><i className="bi bi-wallet2 text-[15px]" />Connect wallet &amp; sign in</>
+                  }
                 </button>
               )}
             </div>

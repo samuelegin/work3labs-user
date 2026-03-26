@@ -1,37 +1,43 @@
 'use client'
 
 import { useAccount, useConnect, useDisconnect, useSignMessage, useSwitchChain } from 'wagmi'
+import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { base } from 'wagmi/chains'
 import { useCallback } from 'react'
 import { buildSignInMessage } from '@/lib/wagmi'
 
 export function useWallet() {
   const { address, isConnected, chain } = useAccount()
-  const { connectAsync, connectors, isPending: isConnecting } = useConnect()
+  const { isPending: isConnecting } = useConnect()
   const { disconnectAsync } = useDisconnect()
   const { signMessageAsync } = useSignMessage()
   const { switchChainAsync } = useSwitchChain()
+  const { openConnectModal } = useConnectModal()
 
   const isOnBase = chain?.id === base.id
 
-  // Opens RainbowKit modal — connector selection handled there
-  const connect = useCallback(async () => {
-    const connector = connectors[0]
-    if (!connector) return { error: 'No wallet connector available' }
-    try {
-      await connectAsync({ connector })
-      return { error: null }
-    } catch (err) {
-      if (err?.message?.includes('User rejected')) return { error: 'Connection cancelled' }
-      return { error: err?.message ?? 'Connection failed' }
-    }
-  }, [connectAsync, connectors])
+  // Opens the RainbowKit modal. Resolves when the user closes it.
+  // The caller must watch isConnected via useEffect to know when a wallet connected.
+  const openModal = useCallback(() => {
+    return new Promise((resolve) => {
+      if (!openConnectModal) {
+        resolve({ error: 'Wallet provider not ready' })
+        return
+      }
+      try {
+        openConnectModal()
+        resolve({ error: null })
+      } catch (err) {
+        resolve({ error: err?.message ?? 'Could not open wallet modal' })
+      }
+    })
+  }, [openConnectModal])
 
   const disconnect = useCallback(async () => {
     try { await disconnectAsync() } catch {}
   }, [disconnectAsync])
 
-  // Prompt network switch if not already on Base
+  // Switch to Base if on a different network
   const ensureBase = useCallback(async () => {
     if (chain?.id === base.id) return { error: null }
     try {
@@ -42,7 +48,7 @@ export function useWallet() {
     }
   }, [chain, switchChainAsync])
 
-  // Sign a timestamped message — no transaction, just ownership proof
+  // Sign a timestamped challenge message — no transaction, just ownership proof
   const signLoginMessage = useCallback(async (addr) => {
     const message = buildSignInMessage(addr)
     try {
@@ -59,7 +65,7 @@ export function useWallet() {
     isConnected,
     isConnecting,
     isOnBase,
-    connect,
+    openModal,
     disconnect,
     ensureBase,
     signLoginMessage,

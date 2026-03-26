@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { validateInviteToken, registerWithInvite } from '@/services/api'
 import { useWallet } from '@/hooks/useWallet'
 
@@ -92,7 +91,7 @@ export default function UserSignupClient() {
   const inviteToken = searchParams.get('token') ?? ''
   const nameRef = useRef(null)
 
-  const { address, isConnected } = useWallet()
+  const { address, isConnected, openModal, disconnect } = useWallet()
 
   const [tokenState, setTokenState] = useState('validating')
   const [inviteEmail, setInviteEmail] = useState('')
@@ -277,23 +276,30 @@ export default function UserSignupClient() {
                 <div className="flex-1 h-px bg-black/[0.06]" />
               </div>
 
-              {/* RainbowKit handles wallet selection and connection */}
-              <div className="flex justify-center">
-                <ConnectButton chainStatus="icon" showBalance={false} accountStatus="address" />
-              </div>
-
-              {isConnected && (
+              {/* Wallet connection — opens RainbowKit modal, no branded button */}
+              {isConnected && address ? (
                 <div className="flex items-center gap-2 bg-[#F4FAF7] border border-green-dark/15 rounded-[10px] px-4 py-3">
                   <span className="w-2 h-2 rounded-full bg-green-dark flex-shrink-0" />
-                  <p className="text-[12.5px] font-light text-green-dark truncate">{address}</p>
-                  <span className="font-mono text-[9px] text-green-dark/60 ml-auto">Base</span>
+                  <p className="text-[12.5px] font-light text-green-dark truncate flex-1">{address}</p>
+                  <span className="font-mono text-[9px] text-green-dark/60 flex-shrink-0">Base</span>
+                  <button
+                    type="button"
+                    onClick={() => disconnect()}
+                    className="font-mono text-[9px] tracking-[0.06em] uppercase text-[#CCC] hover:text-red-400 transition-colors bg-transparent border-none cursor-pointer p-0 flex-shrink-0 ml-1"
+                  >
+                    Remove
+                  </button>
                 </div>
-              )}
-
-              {!isConnected && (
-                <p className="text-[11.5px] font-light text-[#CCC]">
-                  You can connect your wallet later from your profile.
-                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => openModal()}
+                  className="w-full flex items-center justify-center gap-2.5 border border-black/[0.09] rounded-[10px] px-4 py-3 font-sans text-[13.5px] font-light text-[#555] hover:border-black/20 hover:text-ink hover:bg-black/[0.02] transition-all bg-transparent cursor-pointer"
+                >
+                  <i className="bi bi-wallet2 text-[15px]" />
+                  Connect wallet
+                  <span className="font-mono text-[9px] tracking-[0.06em] uppercase text-[#CCC] ml-auto">Optional</span>
+                </button>
               )}
             </div>
 

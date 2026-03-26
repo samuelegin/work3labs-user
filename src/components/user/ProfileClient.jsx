@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { fetchProfile, updateProfile } from '@/services/api'
 import { useWallet } from '@/hooks/useWallet'
 import { uploadAvatar } from '@/lib/uploadAvatar'
@@ -146,7 +145,7 @@ function SkillsInput({ skills, onChange }) {
 }
 
 export default function ProfileClient() {
-  const { address, isConnected } = useWallet()
+  const { address, isConnected, openModal, disconnect } = useWallet()
   const fileRef = useRef(null)
 
   const [user, setUser] = useState(null)
@@ -350,15 +349,28 @@ export default function ProfileClient() {
             <p className="text-[12.5px] font-light text-[#888] leading-relaxed">
               Connected on Base network. Required to receive PoP NFT badges and claim fund splits.
             </p>
-            <div className="flex justify-start">
-              <ConnectButton chainStatus="full" showBalance={false} accountStatus="address" />
-            </div>
-            {isConnected && (
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-dark flex-shrink-0" />
-                <p className="font-mono text-[11.5px] text-[#888]">Connected on Base · {address?.slice(0, 6)}…{address?.slice(-4)}</p>
-              </div>
-            )}
+            {isConnected && address ? (
+                <div className="flex items-center gap-2 bg-[#F4FAF7] border border-green-dark/15 rounded-[10px] px-4 py-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-dark flex-shrink-0" />
+                  <p className="font-mono text-[12px] text-green-dark truncate flex-1">{address}</p>
+                  <span className="font-mono text-[9px] text-green-dark/60 flex-shrink-0">Base</span>
+                  <button
+                    type="button"
+                    onClick={() => disconnect()}
+                    className="font-mono text-[9px] tracking-[0.06em] uppercase text-[#CCC] hover:text-red-400 transition-colors bg-transparent border-none cursor-pointer p-0 flex-shrink-0 ml-2"
+                  >
+                    Disconnect
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => openModal()}
+                  className="w-full flex items-center justify-center gap-2.5 border border-black/[0.09] rounded-[10px] px-4 py-3 font-sans text-[13.5px] font-light text-[#555] hover:border-black/20 hover:text-ink hover:bg-black/[0.02] transition-all bg-transparent cursor-pointer"
+                >
+                  <i className="bi bi-wallet2 text-[15px]" />Connect wallet
+                </button>
+              )}
           </div>
         </div>
 
