@@ -31,7 +31,7 @@ async function request(method, path, body) {
   }
 }
 
-// ── Auth
+// Auth
 export async function validateInviteToken(token) {
   return request('GET', `/user/accept-invite?token=${encodeURIComponent(token)}`)
 }
@@ -60,7 +60,7 @@ export async function userLogout() {
   return request('POST', '/user/logout')
 }
 
-// ── Profile
+// Profile
 export async function fetchProfile() {
   return request('GET', '/user/profile')
 }
@@ -69,13 +69,15 @@ export async function updateProfile({ displayName, email, walletAddress, bio, sk
   return request('PATCH', '/user/profile', { displayName, email, walletAddress, bio, skills, avatarUrl, socials })
 }
 
-// ── Pods
+// Pods
 export async function fetchMyPods() {
   return request('GET', '/user/pods')
 }
 
-export async function createPod({ name, description, roles }) {
-  return request('POST', '/user/pods', { name, description, roles })
+export async function createPod({ name, description, maxMembers, roles, splits }) {
+  // splits: [{ role, percentage }]
+  // Pod is only matchable to a job when splits sum to 100
+  return request('POST', '/user/pods', { name, description, maxMembers, roles, splits })
 }
 
 export async function fetchPod(podId) {
@@ -90,23 +92,37 @@ export async function removeMember(podId, memberId) {
   return request('DELETE', `/user/pods/${podId}/members/${memberId}`)
 }
 
-export async function proposeSplit(podId, splits) {
-  // splits: [{ memberId, percentage }]
-  return request('POST', `/user/pods/${podId}/split`, { splits })
+export async function dissolvePod(podId) {
+  // Admin only. Only before project assigned. PoP records preserved.
+  return request('DELETE', `/user/pods/${podId}`)
 }
 
+// Split chat (pod communication — split is fixed at creation, chat is general)
 export async function fetchSplitChat(podId) {
-  return request('GET', `/user/pods/${podId}/split-chat`)
+  return request('GET', `/user/pods/${podId}/chat`)
 }
 
 export async function sendSplitMessage(podId, { text }) {
-  return request('POST', `/user/pods/${podId}/split-chat`, { text })
+  return request('POST', `/user/pods/${podId}/chat`, { text })
 }
 
+// Work completion
 export async function notifyWorkComplete(podId) {
   return request('POST', `/user/pods/${podId}/notify-complete`)
 }
 
+// Claim — PoP mint fee deducted automatically by backend before sending split
 export async function claimSplit(podId) {
   return request('POST', `/user/pods/${podId}/claim`)
+}
+
+// PoP — export all records as a shareable verifiable CV (on-chain aggregation)
+export async function exportPoPCV(podId) {
+  // Returns { url: "https://..." } — a shareable link to the on-chain CV
+  return request('POST', `/user/pods/${podId}/pop/export`)
+}
+
+// Global PoP export across all pods for a user
+export async function exportUserPoPCV() {
+  return request('POST', '/user/pop/export')
 }
