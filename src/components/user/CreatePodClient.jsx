@@ -56,6 +56,7 @@ export default function CreatePodClient() {
   const [splits, setSplits] = useState([{ role: '', percentage: 100 }])
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
+  const [settlementChain, setSettlementChain] = useState('base')
 
   function addRole(label) {
     const clean = label.trim()
@@ -132,6 +133,7 @@ export default function CreatePodClient() {
       name: name.trim(),
       description: description.trim(),
       maxMembers,
+      settlementChain,
       roles,
       splits: splits.map(s => ({ role: s.role, percentage: Number(s.percentage) })),
     })
@@ -212,6 +214,38 @@ export default function CreatePodClient() {
             <SectionHeader n="02" title="Team setup" sub={`Min ${MIN_MEMBERS} members · Max ${MAX_MEMBERS} members`} />
 
             <div className="space-y-5">
+
+              {/* Settlement chain — chosen once at creation, determines wallet type for payout + PoP mint */}
+              <div>
+                <label className="font-mono text-[10px] tracking-[0.12em] uppercase text-[#999] block mb-2">Settlement chain</label>
+                <p className="text-[11.5px] text-[#BBB] font-light mb-3">The chain where funds are released and PoP badges are minted. Members must connect the matching wallet to claim.</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { key: 'base', label: 'Base', sub: '~$0.02 gas · EVM', color: '#3B82F6' },
+                    { key: 'solana', label: 'Solana', sub: '<$0.005 gas · SOL', color: '#9945FF' },
+                  ].map(chain => (
+                    <button
+                      key={chain.key}
+                      type="button"
+                      onClick={() => setSettlementChain(chain.key)}
+                      className={`flex items-start gap-3 px-4 py-4 rounded-[10px] border-2 transition-all cursor-pointer bg-transparent text-left ${
+                        settlementChain === chain.key
+                          ? 'border-ink bg-[#FAFAFA]'
+                          : 'border-black/[0.09] hover:border-black/20'
+                      }`}
+                    >
+                      <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ background: chain.color }} />
+                      <div>
+                        <p className="font-sans text-[13.5px] font-medium text-ink">{chain.label}</p>
+                        <p className="font-mono text-[10px] text-[#AAA] tracking-[0.04em]">{chain.sub}</p>
+                      </div>
+                      {settlementChain === chain.key && (
+                        <i className="bi bi-check-circle-fill text-ink text-[13px] ml-auto flex-shrink-0 mt-0.5" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
               {/* Max members slider */}
               <div>
                 <div className="flex items-center justify-between mb-2">

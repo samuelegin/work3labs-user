@@ -4,8 +4,16 @@ export function middleware(request) {
   const { pathname } = request.nextUrl
   const token = request.cookies.get('w3l_user_auth')?.value
 
-  const isProtected = pathname.startsWith('/dashboard') || pathname.startsWith('/pod') || pathname.startsWith('/profile')
-  const isAuthRoute  = pathname.startsWith('/auth/')
+  const isProtected =
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/pod') ||
+    pathname.startsWith('/profile') ||
+    pathname.startsWith('/notifications') ||
+    pathname.startsWith('/blue-tick') ||
+    pathname.startsWith('/project') ||
+    pathname.startsWith('/marketplace')
+
+  const isAuthRoute = pathname.startsWith('/auth/')
 
   // if (isProtected && !token) {
   //   const url = request.nextUrl.clone()
@@ -24,5 +32,5 @@ export function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/pod/:path*', '/profile/:path*', '/auth/:path*'],
+  matcher: ['/dashboard/:path*', '/pod/:path*', '/profile/:path*', '/notifications/:path*', '/blue-tick/:path*', '/project/:path*', '/marketplace/:path*', '/auth/:path*'],
 }
