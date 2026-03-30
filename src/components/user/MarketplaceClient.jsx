@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { fetchMarketplaceJobs } from '@/services/api'
+import ThemeToggle from '@/components/ThemeToggle'
 
 const CATEGORIES = ['All', 'Community & Growth', 'Engineering', 'Design', 'Strategy & GTM', 'Marketing', 'Research', 'DevOps', 'Content']
 const CHAINS = ['All chains', 'Base (USDC)', 'Solana (USDC)']
@@ -38,6 +39,12 @@ function JobCard({ job }) {
   return (
     <Link href={`/marketplace/${job.id}`}>
       <div className="group bg-white border border-black/[0.07] rounded-[14px] p-6 hover:border-black/[0.18] hover:shadow-[0_4px_24px_rgba(0,0,0,0.07)] transition-all cursor-pointer">
+        {(job.budgetUsd ?? 0) >= 1000 && (
+          <div className="flex items-center gap-1.5 mb-3 px-2.5 py-1.5 bg-amber-50 border border-amber-100 rounded-[8px] w-fit">
+            <i className="bi bi-shield-lock text-amber-500 text-[11px]" />
+            <span className="font-mono text-[9px] tracking-[0.06em] uppercase text-amber-600">KYC required</span>
+          </div>
+        )}
         <div className="flex items-start justify-between gap-4 mb-3">
           <div className="flex-1 min-w-0">
             <p className="font-sans text-[15px] font-medium text-ink tracking-[-0.01em] leading-snug group-hover:text-green-dark transition-colors mb-1">
@@ -141,10 +148,11 @@ export default function MarketplaceClient() {
               <i className="bi bi-search text-[13px] text-[#CCC] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text" value={q} onChange={e => setQ(e.target.value)}
-                placeholder="Search jobs…"
+                placeholder="Search deals…"
                 className="font-sans text-[13px] font-light text-ink bg-white border border-black/[0.09] rounded-[8px] pl-8 pr-3 py-1.5 outline-none focus:border-[#1DC433] focus:shadow-[0_0_0_3px_rgba(45,252,68,0.08)] transition-all w-[200px] placeholder-[#CCC]"
               />
             </div>
+            <ThemeToggle />
           </div>
         </div>
       </div>
@@ -152,15 +160,21 @@ export default function MarketplaceClient() {
       <div className="max-w-[1100px] mx-auto px-5 sm:px-8 py-8 sm:py-12">
 
         {/* Header */}
+        {/*
+          IMAGE PLACEHOLDER — Marketplace Hero
+          PROMPT: "Birds-eye view of glowing deal cards and contracts floating in dark space, gold and green light trails, blockchain nodes connecting, panoramic wide, no text"
+          REPLACE: Add as a rounded banner above the h1:
+          <img src="/images/marketplace-hero.jpg" className="w-full h-28 object-cover rounded-[16px] mb-6 opacity-70" />
+        */}
         <div className="mb-8" style={{ animation: 'up 0.5s cubic-bezier(0.22,1,0.36,1) both' }}>
-          <span className="font-mono text-[10px] tracking-[0.14em] uppercase text-[#AAA] block mb-2">Open positions</span>
+          <span className="font-mono text-[10px] tracking-[0.14em] uppercase text-[#AAA] block mb-2">Open deals</span>
           <div className="flex items-end justify-between gap-4">
             <h1 className="font-serif text-[28px] sm:text-[36px] font-light tracking-[-0.04em] text-ink">
-              Job Marketplace
+              Deal Marketplace
             </h1>
-            {!loading && <p className="font-mono text-[10.5px] text-[#AAA] tracking-[0.06em] mb-1">{total} open jobs</p>}
+            {!loading && <p className="font-mono text-[10.5px] text-[#AAA] tracking-[0.06em] mb-1">{total} open deals</p>}
           </div>
-          <p className="text-[14px] font-light text-[#888] mt-1">Apply as an individual or with your pod. All jobs are open for direct applications.</p>
+          <p className="text-[14px] font-light text-[#888] mt-1">Apply as an individual or with your pod. All deals are open for direct applications.</p>
         </div>
 
         <div className="flex gap-6">
@@ -234,7 +248,7 @@ export default function MarketplaceClient() {
             ) : jobs.length === 0 ? (
               <div className="bg-white border border-black/[0.07] rounded-[14px] px-8 py-16 text-center" style={{ animation: 'up 0.4s both' }}>
                 <i className="bi bi-briefcase text-[28px] text-[#CCC] block mb-4" />
-                <p className="font-serif text-[20px] font-light text-ink mb-2">No jobs found</p>
+                <p className="font-serif text-[20px] font-light text-ink mb-2">No deals found</p>
                 <p className="text-[13.5px] font-light text-[#AAA]">Try adjusting your filters or search query.</p>
               </div>
             ) : (

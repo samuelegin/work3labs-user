@@ -1,4 +1,5 @@
 'use client'
+import ThemeToggle from '@/components/ThemeToggle'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
@@ -200,6 +201,14 @@ export default function UserLoginClient() {
       className="min-h-screen bg-paper flex flex-col relative overflow-hidden mesh-green-tr mesh-blue-bl"
       style={{ fontFamily: 'Outfit, sans-serif' }}
     >
+      <div className="fixed top-4 right-4 z-50"><ThemeToggle /></div>
+      {/*
+        IMAGE PLACEHOLDER — Login page
+        PROMPT: "Dark futuristic Web3 identity portal, glowing green circuit nodes floating on near-black background, abstract digital network graph, cinematic, no text"
+        REPLACE: add a full-bleed background image to this page:
+        <img src="/images/userlogin-hero.jpg"
+          className="fixed inset-0 w-full h-full object-cover opacity-[0.04] pointer-events-none z-0" />
+      */}
       <div className="flex-1 flex items-center justify-center px-4 py-16 sm:py-20">
         <div className="w-full max-w-[400px]" style={{ animation: 'up 0.5s cubic-bezier(0.22,1,0.36,1) both' }}>
           <div className="flex flex-col items-center mb-8 sm:mb-10">

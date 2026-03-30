@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { fetchNotifications, markNotificationRead, markAllNotificationsRead } from '@/services/api'
+import ThemeToggle from '@/components/ThemeToggle'
 
 const NOTIF_ICONS = {
   pod_invite: { icon: 'bi-people', color: '#3B82F6' },
@@ -62,12 +63,15 @@ export default function NotificationsClient() {
               <span className="font-mono text-[9px] bg-green-dark text-ink font-bold rounded-full px-2 py-0.5">{unread} new</span>
             )}
           </div>
-          {unread > 0 && (
-            <button onClick={handleMarkAll} disabled={markingAll}
-              className="font-mono text-[9px] tracking-[0.08em] uppercase text-[#AAA] hover:text-ink transition-colors bg-transparent border-none cursor-pointer disabled:opacity-50">
-              Mark all read
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {unread > 0 && (
+              <button onClick={handleMarkAll} disabled={markingAll}
+                className="font-mono text-[9px] tracking-[0.08em] uppercase text-[#AAA] hover:text-ink transition-colors bg-transparent border-none cursor-pointer disabled:opacity-50">
+                Mark all read
+              </button>
+            )}
+            <ThemeToggle />
+          </div>
         </div>
       </div>
 

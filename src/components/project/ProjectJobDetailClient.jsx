@@ -1,4 +1,5 @@
 'use client'
+import ThemeToggle from '@/components/ThemeToggle'
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
@@ -131,6 +132,7 @@ export default function ProjectJobDetailClient({ jobId }) {
           </Link>
           <span className="text-[#E0E0E0] text-[12px]">/</span>
           <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-[#BBB] truncate max-w-[200px]">{job.title}</span>
+          <div className="ml-auto"><ThemeToggle /></div>
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 'use client'
+import ThemeToggle from '@/components/ThemeToggle'
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -153,6 +154,7 @@ export default function CreatePodClient() {
           </Link>
           <span className="text-[#E0E0E0] text-[12px]">/</span>
           <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-[#BBB]">New pod</span>
+          <div className="ml-auto"><ThemeToggle /></div>
         </div>
       </div>
 

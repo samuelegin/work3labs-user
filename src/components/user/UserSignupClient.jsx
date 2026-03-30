@@ -1,4 +1,5 @@
 'use client'
+import ThemeToggle from '@/components/ThemeToggle'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -159,6 +160,14 @@ export default function UserSignupClient() {
   if (tokenState === 'validating') {
     return (
       <div className="min-h-screen bg-paper flex items-center justify-center relative overflow-hidden mesh-green-tr mesh-blue-bl" style={{ fontFamily: 'Outfit, sans-serif' }}>
+      <div className="fixed top-4 right-4 z-50"><ThemeToggle /></div>
+      {/*
+        IMAGE PLACEHOLDER — Signup page
+        PROMPT: "Abstract onboarding journey into Web3, glowing path leading into a digital portal, dark background, neon green accents, no text"
+        REPLACE: add a full-bleed background image to this page:
+        <img src="/images/usersignup-hero.jpg"
+          className="fixed inset-0 w-full h-full object-cover opacity-[0.04] pointer-events-none z-0" />
+      */}
         <div className="flex flex-col items-center gap-4">
           <Spinner light={false} />
           <p className="font-mono text-[10px] tracking-[0.12em] uppercase text-[#CCC]">Validating invite…</p>

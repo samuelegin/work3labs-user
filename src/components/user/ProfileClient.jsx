@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { fetchProfile, updateProfile } from '@/services/api'
+import ThemeToggle from '@/components/ThemeToggle'
 import { useWallet } from '@/hooks/useWallet'
 import { uploadAvatar } from '@/lib/uploadAvatar'
 
@@ -281,8 +282,9 @@ export default function ProfileClient() {
           <span className="text-[#E0E0E0] text-[12px]">/</span>
           <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-[#BBB]">Profile</span>
           {!isComplete && (
-            <span className="ml-auto font-mono text-[9px] tracking-[0.06em] uppercase text-amber-500">{pct}% complete</span>
+            <span className="font-mono text-[9px] tracking-[0.06em] uppercase text-amber-500">{pct}% complete</span>
           )}
+          <ThemeToggle />
         </div>
       </div>
 

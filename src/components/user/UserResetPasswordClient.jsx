@@ -1,4 +1,5 @@
 'use client'
+import ThemeToggle from '@/components/ThemeToggle'
 
 /**
  * Work3 Labs — User Reset Password
@@ -131,6 +132,7 @@ export default function UserResetPasswordClient() {
   if (done) {
     return (
       <div className="min-h-screen bg-paper flex flex-col items-center justify-center px-4 relative overflow-hidden mesh-green-tr mesh-blue-bl" style={{ fontFamily: 'Outfit, sans-serif' }}>
+      <div className="fixed top-4 right-4 z-50"><ThemeToggle /></div>
         <div className="w-full max-w-[400px] text-center" style={{ animation: 'up 0.5s cubic-bezier(0.22,1,0.36,1) both' }}>
           <img src="/logo.png" alt="Work3 Labs" className="h-9 mx-auto mb-8" />
           <div className="bg-white border border-black/[0.07] rounded-2xl shadow-[0_2px_40px_rgba(0,0,0,0.06)] px-7 py-12 flex flex-col items-center text-center">

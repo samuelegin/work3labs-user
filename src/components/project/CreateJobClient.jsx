@@ -1,4 +1,5 @@
 'use client'
+import ThemeToggle from '@/components/ThemeToggle'
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -74,7 +75,7 @@ export default function CreateJobClient() {
   function validateStep() {
     const next = {}
     if (step === 0) {
-      if (!title.trim()) next.title = 'Job title is required'
+      if (!title.trim()) next.title = 'Deal title is required'
       if (!category) next.category = 'Select a category'
       if (!timeline.trim()) next.timeline = 'Timeline is required'
     }
@@ -141,6 +142,7 @@ export default function CreateJobClient() {
             <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-[#BBB]">Post a job</span>
           </div>
           <span className="font-mono text-[10px] text-[#CCC]">Step {step + 1} of {STEPS.length}</span>
+          <div className="ml-auto"><ThemeToggle /></div>
         </div>
       </div>
 
@@ -174,7 +176,7 @@ export default function CreateJobClient() {
                 <p className="text-[13px] font-light text-[#AAA]">Define what you need and the expected timeline.</p>
               </div>
               <div>
-                <label htmlFor="title" className="font-mono text-[10px] tracking-[0.12em] uppercase text-[#999] block mb-1.5">Job title</label>
+                <label htmlFor="title" className="font-mono text-[10px] tracking-[0.12em] uppercase text-[#999] block mb-1.5">Deal title</label>
                 <input id="title" type="text" value={title} onChange={e => { setTitle(e.target.value); setErrors(err => ({ ...err, title: null })) }}
                   placeholder="e.g. Community Growth Strategy for Q2" autoFocus className={inputCls(errors.title)} />
                 {errors.title && <p className="mt-1.5 text-[12px] text-red-500 font-light flex items-center gap-1.5"><i className="bi bi-exclamation-circle text-[11px]" />{errors.title}</p>}

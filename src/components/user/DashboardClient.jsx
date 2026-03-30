@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { fetchProfile, fetchMyPods, fetchDashboardSummary, fetchNotifications, userLogout } from '@/services/api'
+import ThemeToggle from '@/components/ThemeToggle'
 
 const STATUS = {
   forming: { label: 'Forming', color: '#F59E0B' },
@@ -35,6 +36,9 @@ function NavBar({ user, unreadCount, onLogout }) {
             className="hidden sm:flex items-center gap-1.5 bg-ink text-paper font-sans text-[12.5px] font-medium px-4 py-2 rounded-[8px] hover:bg-[#1A1A1A] transition-colors border-none cursor-pointer">
             <i className="bi bi-plus text-[15px]" />New pod
           </Link>
+
+          {/* Theme toggle */}
+          <ThemeToggle />
 
           {/* Notifications bell */}
           <Link href="/notifications" className="relative w-9 h-9 flex items-center justify-center border border-black/[0.09] rounded-[8px] hover:border-black/20 transition-colors">
@@ -84,7 +88,7 @@ function NavBar({ user, unreadCount, onLogout }) {
                 </Link>
                 <Link href="/blue-tick" onClick={() => setMenuOpen(false)}
                   className="flex items-center gap-2.5 px-4 py-3 hover:bg-[#FAFAFA] transition-colors text-[13px] font-light text-ink border-b border-black/[0.05]">
-                  <i className="bi bi-patch-check-fill text-[14px] text-[#3B82F6]" />Get Blue Tick
+                  <i className="bi bi-patch-check-fill text-[14px] text-[#F59E0B]" />Get Premium
                 </Link>
                 <button onClick={onLogout}
                   className="w-full flex items-center gap-2.5 px-4 py-3 hover:bg-[#FFF5F5] transition-colors text-[13px] font-light text-red-500 bg-transparent border-none cursor-pointer text-left">
@@ -235,14 +239,21 @@ export default function DashboardClient() {
       <main className="max-w-[1100px] mx-auto px-5 sm:px-8 py-8 sm:py-12">
 
         {/* Greeting */}
+        {/*
+          IMAGE PLACEHOLDER — User Dashboard Hero Banner
+          PROMPT: "Abstract dark Web3 contributor workspace, glowing data streams, floating reputation badges, neon green accents on deep black, ultra-wide panoramic, no text"
+          REPLACE: Wrap the greeting div in a relative container and add:
+          <img src="/images/dashboard-hero.jpg" className="absolute inset-0 w-full h-full object-cover opacity-10 rounded-[18px]" />
+          as a background inside the card below.
+        */}
         <div className="mb-8" style={{ animation: 'up 0.5s cubic-bezier(0.22,1,0.36,1) both' }}>
           {loading ? <Skeleton className="h-8 w-48 mb-2" /> : (
             <div className="flex items-center gap-3">
               <h1 className="font-serif text-[28px] sm:text-[34px] font-light tracking-[-0.04em] text-ink">
                 {user?.displayName ? `Hey, ${user.displayName.split(' ')[0]}.` : 'Dashboard'}
               </h1>
-              {user?.blueTick && <i className="bi bi-patch-check-fill text-[#3B82F6] text-[20px]" title="Blue Tick" />}
-              {user?.goldTick && <i className="bi bi-patch-check-fill text-[#F59E0B] text-[20px]" title="Gold Tick" />}
+              {user?.blueTick && <i className="bi bi-patch-check-fill text-[#F59E0B] text-[20px]" title="Premium" />}
+              {user?.goldTick && <i className="bi bi-patch-check-fill text-[#F59E0B] text-[20px]" title="Premium Plus" />}
             </div>
           )}
           <p className="text-[13.5px] font-light text-[#AAA]">Your performance, pods, and earnings.</p>
@@ -308,6 +319,11 @@ export default function DashboardClient() {
                 <div className="space-y-3">{[1,2].map(i => <Skeleton key={i} className="h-[100px]" />)}</div>
               ) : displayedPods.length === 0 ? (
                 <div className="bg-white border border-black/[0.07] rounded-[14px] px-8 py-12 flex flex-col items-center text-center">
+                  {/*
+                    IMAGE PLACEHOLDER — Empty pods state
+                    PROMPT: "Minimalist illustration of empty connected orbs or network nodes, soft light, Web3 aesthetic, pastel tones, no text"
+                    REPLACE: add <img src="/images/empty-pods.png" className="w-20 h-20 object-contain mb-2 opacity-50" /> above the icon
+                  */}
                   <div className="w-12 h-12 rounded-full bg-[#F4F4F2] flex items-center justify-center mb-4">
                     <i className="bi bi-people text-[20px] text-[#CCC]" />
                   </div>
@@ -325,14 +341,20 @@ export default function DashboardClient() {
               )}
             </div>
 
-            {/* Active jobs section */}
+            {/* Active deals section */}
             <div style={{ animation: 'up 0.5s 0.1s cubic-bezier(0.22,1,0.36,1) both' }}>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-serif text-[19px] font-light text-ink tracking-[-0.03em]">Active projects</h2>
+                <h2 className="font-serif text-[19px] font-light text-ink tracking-[-0.03em]">Active deals</h2>
+                <Link href="/marketplace" className="font-mono text-[10px] tracking-[0.08em] uppercase text-[#AAA] hover:text-ink transition-colors">
+                  Browse →
+                </Link>
               </div>
               <div className="bg-white border border-black/[0.07] rounded-[14px] px-6 py-10 flex flex-col items-center text-center">
                 <i className="bi bi-briefcase text-[24px] text-[#CCC] mb-3" />
-                <p className="text-[13px] font-light text-[#AAA]">No active projects. Jobs you're assigned to will appear here.</p>
+                <p className="text-[13px] font-light text-[#AAA]">No active deals. Deals you're matched to will appear here.</p>
+                <Link href="/marketplace" className="mt-4 inline-flex items-center gap-2 border border-black/[0.09] text-[#555] font-sans text-[13px] font-light px-4 py-2 rounded-[8px] hover:border-black/20 hover:text-ink transition-all">
+                  Browse deals
+                </Link>
               </div>
             </div>
           </div>
@@ -347,11 +369,11 @@ export default function DashboardClient() {
               </div>
               <div className="divide-y divide-black/[0.05]">
                 {[
-                  { href: '/marketplace', icon: 'bi-briefcase', label: 'Marketplace', sub: 'Browse open jobs' },
+                  { href: '/marketplace', icon: 'bi-briefcase', label: 'Marketplace', sub: 'Browse open deals' },
                   { href: '/pod/create', icon: 'bi-people', label: 'Create a pod', sub: 'Min 2, max 5 members' },
                   { href: '/profile/pop', icon: 'bi-patch-check-fill text-[#3B82F6]', label: 'Performance Book', sub: 'View all PoP badges' },
                   { href: '/leaderboard', icon: 'bi-trophy text-[#F59E0B]', label: 'Leaderboard', sub: 'See top earners' },
-                  { href: '/blue-tick', icon: 'bi-patch-check-fill text-[#3B82F6]', label: 'Buy Blue Tick', sub: 'Verified status' },
+                  { href: '/blue-tick', icon: 'bi-patch-check-fill text-[#F59E0B]', label: 'Get Premium', sub: 'Verified status' },
                 ].map(({ href, icon, label, sub }) => (
                   <Link key={href} href={href} className="flex items-center gap-3 px-5 py-3.5 hover:bg-[#FAFAFA] transition-colors">
                     <i className={`bi ${icon} text-[16px] w-5 text-center`} />

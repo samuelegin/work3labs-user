@@ -1,4 +1,5 @@
 'use client'
+import ThemeToggle from '@/components/ThemeToggle'
 
 /**
  * Work3 Labs — User Forgot Password
@@ -70,6 +71,7 @@ export default function UserForgotPasswordClient() {
       className="min-h-screen bg-paper flex flex-col relative overflow-hidden mesh-green-tr mesh-blue-bl"
       style={{ fontFamily: 'Outfit, sans-serif' }}
     >
+      <div className="fixed top-4 right-4 z-50"><ThemeToggle /></div>
       <div className="absolute top-5 left-5 sm:top-7 sm:left-7 z-10">
         <Link
           href="/auth/login"

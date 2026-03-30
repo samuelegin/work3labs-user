@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import ThemeToggle from '@/components/ThemeToggle'
 
 export default function NotFound() {
   return (
@@ -6,6 +7,7 @@ export default function NotFound() {
       className="min-h-screen bg-paper flex flex-col items-center justify-center px-4 relative overflow-hidden mesh-green-tr mesh-blue-bl"
       style={{ fontFamily: 'Outfit, sans-serif' }}
     >
+      <div className="fixed top-4 right-4 z-50"><ThemeToggle /></div>
       <div
         className="w-full max-w-[400px] text-center"
         style={{ animation: 'up 0.5s cubic-bezier(0.22,1,0.36,1) both' }}

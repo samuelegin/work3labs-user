@@ -1,4 +1,5 @@
 'use client'
+import ThemeToggle from '@/components/ThemeToggle'
 
 /**
  * Work3 Labs — Edit Pod
@@ -164,6 +165,7 @@ export default function EditPodClient({ podId }) {
           <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-[#BBB] truncate max-w-[160px]">{pod.name}</span>
           <span className="text-[#E0E0E0] text-[12px]">/</span>
           <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-[#BBB]">Edit</span>
+          <div className="ml-auto"><ThemeToggle /></div>
         </div>
       </div>
 

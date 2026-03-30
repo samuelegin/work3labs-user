@@ -1,4 +1,5 @@
 'use client'
+import ThemeToggle from '@/components/ThemeToggle'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -35,6 +36,7 @@ export default function LeaderboardClient() {
           </Link>
           <span className="text-[#E0E0E0] text-[12px]">/</span>
           <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-[#BBB]">Leaderboard</span>
+          <div className="ml-auto"><ThemeToggle /></div>
         </div>
       </div>
 

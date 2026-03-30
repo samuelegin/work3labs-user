@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { fetchMarketplaceJob, applyToMarketplaceJob, fetchMyPods, fetchJobChat, sendJobChatMessage } from '@/services/api'
+import { fetchMarketplaceJob, applyToMarketplaceJob, fetchMyPods, fetchJobChat, sendJobChatMessage, fetchProfile } from '@/services/api'
+import ThemeToggle from '@/components/ThemeToggle'
 
 function Spinner({ light = true }) {
   return <span className={`inline-block w-[16px] h-[16px] rounded-full border-2 spin-anim flex-shrink-0 ${light ? 'border-white/25 border-t-white' : 'border-black/10 border-t-black/40'}`} />
@@ -20,6 +21,7 @@ function ChainBadge({ chain }) {
 export default function JobDetailClient({ jobId }) {
   const [job, setJob] = useState(null)
   const [myPods, setMyPods] = useState([])
+  const [currentUser, setCurrentUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [applying, setApplying] = useState(false)
   const [applyAs, setApplyAs] = useState('individual')
@@ -27,6 +29,7 @@ export default function JobDetailClient({ jobId }) {
   const [applied, setApplied] = useState(false)
   const [applyError, setApplyError] = useState('')
   const [showApply, setShowApply] = useState(false)
+  const [showKycModal, setShowKycModal] = useState(false)
 
   // Chat (shown after acceptance, placeholder here)
   const [messages, setMessages] = useState([])
@@ -35,10 +38,11 @@ export default function JobDetailClient({ jobId }) {
   const chatEndRef = useRef(null)
 
   useEffect(() => {
-    Promise.all([fetchMarketplaceJob(jobId), fetchMyPods()])
-      .then(([jobRes, podsRes]) => {
+    Promise.all([fetchMarketplaceJob(jobId), fetchMyPods(), fetchProfile()])
+      .then(([jobRes, podsRes, profileRes]) => {
         if (jobRes.data) setJob(jobRes.data)
         if (podsRes.data) setMyPods(podsRes.data.pods ?? podsRes.data ?? [])
+        if (profileRes.data) setCurrentUser(profileRes.data)
       })
       .finally(() => setLoading(false))
   }, [jobId])
@@ -84,7 +88,7 @@ export default function JobDetailClient({ jobId }) {
     return (
       <div className="min-h-screen bg-paper flex items-center justify-center" style={{ fontFamily: 'Outfit, sans-serif' }}>
         <div className="text-center">
-          <p className="font-serif text-[22px] font-light text-ink mb-2">Job not found</p>
+          <p className="font-serif text-[22px] font-light text-ink mb-2">Deal not found</p>
           <Link href="/marketplace" className="font-mono text-[10px] tracking-[0.08em] uppercase text-[#AAA] hover:text-ink transition-colors">
             Back to marketplace
           </Link>
@@ -95,9 +99,40 @@ export default function JobDetailClient({ jobId }) {
 
   const adminPods = myPods.filter(p => p.myRole === 'admin' && ['forming', 'active'].includes(p.status))
   const daysLeft = job.deadline ? Math.max(0, Math.round((new Date(job.deadline) - Date.now()) / 86400000)) : null
+  const needsKyc = (job.budgetUsd ?? 0) >= 1000 && !currentUser?.kycVerified
 
   return (
     <div className="min-h-screen bg-paper" style={{ fontFamily: 'Outfit, sans-serif' }}>
+      {/* KYC Modal */}
+      {showKycModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}>
+          <div className="bg-white rounded-[20px] border border-black/[0.07] shadow-[0_8px_48px_rgba(0,0,0,0.14)] w-full max-w-[400px] overflow-hidden" style={{ animation: 'up 0.2s both' }}>
+            <div className="px-7 pt-7 pb-6 border-b border-black/[0.06] text-center">
+              <div className="w-14 h-14 rounded-full bg-amber-50 border border-amber-100 flex items-center justify-center mx-auto mb-4">
+                <i className="bi bi-shield-lock text-amber-500 text-[24px]" />
+              </div>
+              <h2 className="font-serif text-[22px] font-light tracking-[-0.03em] text-ink mb-1">KYC Required</h2>
+              <p className="text-[13px] font-light text-[#888]">This deal has a budget of <strong className="text-ink">${job.budgetUsd?.toLocaleString()}</strong> — identity verification is required to apply.</p>
+            </div>
+            <div className="px-7 py-6 space-y-3">
+              {['Government-issued ID', 'Proof of address', 'Selfie verification'].map((step, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-[#F4F4F2] flex items-center justify-center flex-shrink-0">
+                    <span className="font-mono text-[10px] text-[#888]">{i + 1}</span>
+                  </div>
+                  <p className="text-[13px] font-light text-[#555]">{step}</p>
+                </div>
+              ))}
+              <div className="flex gap-2 pt-2">
+                <button onClick={() => setShowKycModal(false)} className="flex-1 border border-black/[0.09] text-[#888] font-sans text-[13px] py-3 rounded-[10px] hover:border-black/20 hover:text-ink transition-all bg-transparent cursor-pointer">Cancel</button>
+                <Link href="/profile" className="flex-1 flex items-center justify-center gap-2 bg-ink text-paper font-sans text-[13.5px] font-medium py-3 rounded-[10px] hover:bg-[#1A1A1A] transition-colors">
+                  <i className="bi bi-shield-plus text-[14px]" />Complete KYC
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="sticky top-0 z-20 bg-paper/90 backdrop-blur-sm border-b border-black/[0.06]">
         <div className="max-w-[900px] mx-auto px-5 sm:px-8 h-[58px] flex items-center gap-3">
           <Link href="/marketplace" className="flex items-center gap-2 font-mono text-[10px] tracking-[0.1em] uppercase text-[#BBB] hover:text-ink transition-colors">
@@ -105,6 +140,7 @@ export default function JobDetailClient({ jobId }) {
           </Link>
           <span className="text-[#E0E0E0] text-[12px]">/</span>
           <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-[#BBB] truncate max-w-[200px]">{job.title}</span>
+          <div className="ml-auto"><ThemeToggle /></div>
         </div>
       </div>
 
@@ -135,7 +171,7 @@ export default function JobDetailClient({ jobId }) {
 
             {/* Description */}
             <div className="bg-white border border-black/[0.07] rounded-[14px] px-6 py-6" style={{ animation: 'up 0.5s 0.05s both' }}>
-              <h2 className="font-sans text-[14px] font-medium text-ink tracking-[-0.01em] mb-3">About this job</h2>
+              <h2 className="font-sans text-[14px] font-medium text-ink tracking-[-0.01em] mb-3">About this deal</h2>
               <p className="text-[13.5px] font-light text-[#555] leading-[1.75] whitespace-pre-wrap">{job.description}</p>
             </div>
 
@@ -245,7 +281,7 @@ export default function JobDetailClient({ jobId }) {
                     <i className="bi bi-check2 text-ink text-[20px]" />
                   </div>
                   <p className="font-sans text-[14px] font-medium text-ink mb-1">Application sent!</p>
-                  <p className="text-[12px] font-light text-[#AAA]">The project owner will review and may open a chat with you.</p>
+                  <p className="text-[12px] font-light text-[#AAA]">The project team will review and may open a chat with you.</p>
                 </div>
               ) : job.myStatus === 'accepted' ? (
                 <div className="flex items-center gap-2 bg-[#F4FAF7] border border-green-dark/15 rounded-[10px] px-4 py-3">
@@ -276,7 +312,7 @@ export default function JobDetailClient({ jobId }) {
                   <div>
                     <label className="font-mono text-[10px] tracking-[0.12em] uppercase text-[#999] block mb-1.5">Cover note</label>
                     <textarea value={coverNote} onChange={e => setCoverNote(e.target.value.slice(0, 500))} rows={4}
-                      placeholder="Why are you the best fit for this job? What relevant experience do you have?"
+                      placeholder="Why are you the best fit for this deal? What relevant experience do you have?"
                       className="w-full font-sans text-[13px] font-light text-ink border border-black/[0.09] rounded-[10px] px-3.5 py-3 outline-none focus:border-[#1DC433] focus:shadow-[0_0_0_3px_rgba(45,252,68,0.08)] transition-all resize-none placeholder-[#CCC]"
                     />
                     <p className="text-right font-mono text-[10px] text-[#CCC] mt-1">{coverNote.length}/500</p>
@@ -300,10 +336,23 @@ export default function JobDetailClient({ jobId }) {
                   </div>
                 </div>
               ) : (
-                <button onClick={() => setShowApply(true)}
-                  className="w-full flex items-center justify-center gap-2.5 bg-ink text-paper py-3.5 rounded-[10px] font-sans text-[14px] font-medium hover:bg-[#1A1A1A] transition-colors border-none cursor-pointer">
-                  <i className="bi bi-send text-[14px]" />Apply now
-                </button>
+                <>
+                  {needsKyc && (
+                    <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-[10px] px-4 py-3 mb-3">
+                      <i className="bi bi-shield-exclamation text-amber-500 text-[14px] flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-[12.5px] font-medium text-amber-800">KYC required for this deal</p>
+                        <p className="text-[11.5px] font-light text-amber-700 mt-0.5">Deals worth $1,000+ require identity verification. <Link href="/profile" className="underline">Complete KYC →</Link></p>
+                      </div>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => needsKyc ? setShowKycModal(true) : setShowApply(true)}
+                    className="w-full flex items-center justify-center gap-2.5 bg-ink text-paper py-3.5 rounded-[10px] font-sans text-[14px] font-medium hover:bg-[#1A1A1A] transition-colors border-none cursor-pointer">
+                    <i className={`bi ${needsKyc ? 'bi-shield-lock' : 'bi-send'} text-[14px]`} />
+                    {needsKyc ? 'Verify identity to apply' : 'Apply now'}
+                  </button>
+                </>
               )}
             </div>
 

@@ -1,4 +1,5 @@
 'use client'
+import ThemeToggle from '@/components/ThemeToggle'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -72,6 +73,7 @@ export default function PublicProfileClient({ username }) {
             <i className="bi bi-arrow-left text-[11px]" />Leaderboard
           </Link>
           <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-[#BBB]">@{username}</span>
+          <div className="ml-auto"><ThemeToggle /></div>
         </div>
       </div>
 
@@ -91,7 +93,7 @@ export default function PublicProfileClient({ username }) {
               <div className="flex items-center gap-2 flex-wrap mb-0.5">
                 <h1 className="font-serif text-[24px] font-light tracking-[-0.04em] text-ink">{profile.displayName}</h1>
                 {profile.blueTick && (
-                  <span title="Blue Tick" className="flex items-center gap-1 font-mono text-[9px] tracking-[0.06em] uppercase text-[#3B82F6] border border-[#3B82F6]/20 bg-[#3B82F6]/05 rounded-full px-2 py-0.5">
+                  <span title="Premium" className="flex items-center gap-1 font-mono text-[9px] tracking-[0.06em] uppercase text-[#3B82F6] border border-[#3B82F6]/20 bg-[#3B82F6]/05 rounded-full px-2 py-0.5">
                     <i className="bi bi-patch-check-fill text-[10px]" />Verified
                   </span>
                 )}

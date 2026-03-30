@@ -9,7 +9,9 @@ import {
   fetchSplitChat, sendSplitMessage,
   notifyWorkComplete, claimSplit, dissolvePod,
   exportPoPCV,
+  fetchNotifications,
 } from '@/services/api'
+import ThemeToggle from '@/components/ThemeToggle'
 
 const STATUS = {
   forming: { label: 'Forming', color: '#F59E0B', icon: 'bi-people' },
@@ -596,12 +598,22 @@ export default function PodDetailClient({ podId }) {
   const [currentUser, setCurrentUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [removing, setRemoving] = useState(null)
+  const [activeTab, setActiveTab] = useState('pod')  // 'pod' | 'deals' | 'notifications'
+  const [dealFilter, setDealFilter] = useState('active') // 'pending' | 'active' | 'completed'
+  const [podDeals, setPodDeals] = useState([])
+  const [podNotifications, setPodNotifications] = useState([])
 
   useEffect(() => {
-    Promise.all([fetchPod(podId), fetchProfile()])
-      .then(([podRes, profileRes]) => {
-        if (podRes.data) setPod(podRes.data)
+    Promise.all([fetchPod(podId), fetchProfile(), fetchNotifications()])
+      .then(([podRes, profileRes, notifsRes]) => {
+        if (podRes.data) {
+          setPod(podRes.data)
+          // Pod deals come from pod.deals or pod.jobs array if present
+          const dealsArr = podRes.data.deals ?? podRes.data.jobs ?? []
+          setPodDeals(dealsArr)
+        }
         if (profileRes.data) setCurrentUser(profileRes.data)
+        if (notifsRes.data) setPodNotifications(notifsRes.data.notifications ?? [])
       })
       .finally(() => setLoading(false))
   }, [podId])
@@ -666,6 +678,7 @@ export default function PodDetailClient({ podId }) {
           </Link>
           <span className="text-[#E0E0E0] text-[12px]">/</span>
           <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-[#BBB] truncate max-w-[200px]">{pod.name}</span>
+          <div className="ml-auto"><ThemeToggle /></div>
         </div>
       </div>
 
@@ -732,6 +745,141 @@ export default function PodDetailClient({ podId }) {
           </div>
         </div>
 
+        {/* Section tab nav */}
+        <div className="flex items-center gap-1 border-b border-black/[0.06] -mt-2 mb-6" style={{ animation: 'up 0.5s 0.04s cubic-bezier(0.22,1,0.36,1) both' }}>
+          {[
+            { key: 'pod', label: 'Pod', icon: 'bi-people' },
+            { key: 'deals', label: 'Deals', icon: 'bi-briefcase' },
+            { key: 'notifications', label: 'Notifications', icon: 'bi-bell' },
+          ].map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex items-center gap-1.5 font-mono text-[10px] tracking-[0.08em] uppercase px-4 py-3 border-b-2 transition-all bg-transparent cursor-pointer ${
+                activeTab === tab.key
+                  ? 'border-green-dark text-green-dark'
+                  : 'border-transparent text-[#AAA] hover:text-ink'
+              }`}
+            >
+              <i className={`bi ${tab.icon} text-[11px]`} />
+              {tab.label}
+              {tab.key === 'notifications' && podNotifications.filter(n => !n.read).length > 0 && (
+                <span className="bg-green-dark text-ink font-bold rounded-full px-1.5 py-px text-[8px] ml-0.5">
+                  {podNotifications.filter(n => !n.read).length}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Deals tab content */}
+        {activeTab === 'deals' && (
+          <div style={{ animation: 'up 0.3s cubic-bezier(0.22,1,0.36,1) both' }}>
+            {/* Deal status filter */}
+            <div className="flex items-center gap-2 mb-4">
+              {[
+                { key: 'pending', label: 'Pending', color: '#F59E0B' },
+                { key: 'active', label: 'Active', color: '#1DC433' },
+                { key: 'completed', label: 'Completed', color: '#3B82F6' },
+              ].map(f => {
+                const count = podDeals.filter(d => (d.status ?? 'active') === f.key).length
+                return (
+                  <button
+                    key={f.key}
+                    onClick={() => setDealFilter(f.key)}
+                    className={`flex items-center gap-1.5 font-mono text-[10px] tracking-[0.07em] uppercase border rounded-full px-3 py-1.5 cursor-pointer transition-all bg-transparent ${
+                      dealFilter === f.key
+                        ? 'bg-ink text-paper border-transparent'
+                        : 'text-[#888] border-black/[0.09] hover:border-black/20'
+                    }`}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: f.color }} />
+                    {f.label}
+                    <span className="opacity-60">({count})</span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {podDeals.filter(d => (d.status ?? 'active') === dealFilter).length === 0 ? (
+              <div className="bg-white border border-black/[0.07] rounded-[14px] px-8 py-12 text-center">
+                <i className="bi bi-briefcase text-[22px] text-[#CCC] block mb-3" />
+                <p className="font-serif text-[18px] font-light text-ink mb-1">No {dealFilter} deals</p>
+                <p className="text-[13px] font-light text-[#AAA]">
+                  {dealFilter === 'pending' ? 'Deals awaiting confirmation will appear here.' :
+                   dealFilter === 'active' ? 'Active in-progress deals will appear here.' :
+                   'Completed deals will show here after work is approved.'}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {podDeals.filter(d => (d.status ?? 'active') === dealFilter).map((deal, i) => (
+                  <Link key={deal.id ?? i} href={`/marketplace/${deal.id}`}>
+                    <div className="bg-white border border-black/[0.07] rounded-[14px] px-5 py-4 hover:border-black/[0.14] hover:shadow-[0_2px_16px_rgba(0,0,0,0.06)] transition-all cursor-pointer flex items-center gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-sans text-[14px] font-medium text-ink tracking-[-0.01em] truncate">{deal.title ?? 'Untitled Deal'}</p>
+                        <p className="text-[12px] font-light text-[#AAA] mt-0.5">{deal.category ?? 'Deal'} · {deal.timeline ?? 'No timeline'}</p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="font-serif text-[18px] font-light text-green-dark tracking-[-0.04em]">${(deal.budgetUsd ?? 0).toLocaleString()}</p>
+                        <p className="font-mono text-[9px] text-[#AAA] tracking-[0.06em] uppercase mt-0.5">
+                          {dealFilter === 'pending' ? 'Pending' : dealFilter === 'active' ? 'In progress' : 'Completed'}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Notifications tab content */}
+        {activeTab === 'notifications' && (
+          <div style={{ animation: 'up 0.3s cubic-bezier(0.22,1,0.36,1) both' }}>
+            <div className="bg-white border border-black/[0.07] rounded-[14px] overflow-hidden">
+              {podNotifications.length === 0 ? (
+                <div className="px-6 py-12 flex flex-col items-center text-center">
+                  <div className="w-12 h-12 rounded-full bg-[#F4F4F2] flex items-center justify-center mb-3">
+                    <i className="bi bi-bell text-[20px] text-[#CCC]" />
+                  </div>
+                  <p className="font-serif text-[17px] font-light text-ink mb-1">No notifications</p>
+                  <p className="text-[13px] font-light text-[#AAA]">Deal updates, work approvals, and ratings will appear here.</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-black/[0.05]">
+                  {podNotifications.map((n, i) => {
+                    const icons = {
+                      job_assigned: { icon: 'bi-briefcase', color: '#1DC433' },
+                      work_approved: { icon: 'bi-patch-check', color: '#1DC433' },
+                      funds_released: { icon: 'bi-cash-coin', color: '#1DC433' },
+                      rating_received: { icon: 'bi-star-fill', color: '#F59E0B' },
+                      dispute_opened: { icon: 'bi-exclamation-triangle', color: '#EF4444' },
+                    }
+                    const cfg = icons[n.type] ?? { icon: 'bi-bell', color: '#AAA' }
+                    return (
+                      <div key={n.id ?? i} className={`flex items-start gap-4 px-6 py-5 transition-colors ${!n.read ? 'bg-[#F9FFF9]' : 'hover:bg-[#FAFAFA]'}`}>
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: cfg.color + '15' }}>
+                          <i className={`bi ${cfg.icon} text-[13px]`} style={{ color: cfg.color }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-[13.5px] leading-snug ${!n.read ? 'font-medium text-ink' : 'font-light text-[#555]'}`}>{n.title}</p>
+                          {n.body && <p className="text-[12px] font-light text-[#888] mt-0.5">{n.body}</p>}
+                          <p className="font-mono text-[10px] text-[#CCC] mt-1">{new Date(n.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                        </div>
+                        {!n.read && <span className="w-2 h-2 rounded-full bg-green-dark flex-shrink-0 mt-2" />}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Pod tab content — original sections, gated by tab */}
+        {activeTab === 'pod' && <>
+
         {/* Dissolved banner */}
         {pod.status === 'dissolved' && (
           <div className="flex items-center gap-3 bg-red-50 border border-red-100 rounded-[14px] px-6 py-5">
@@ -797,6 +945,8 @@ export default function PodDetailClient({ podId }) {
             <DissolveSection podId={podId} onDissolved={handleDissolved} />
           </div>
         )}
+
+        </> /* end pod tab */}
       </div>
     </div>
   )
