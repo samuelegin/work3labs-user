@@ -143,13 +143,13 @@ export default function MarketplaceClient() {
             <span className="text-[#E0E0E0] text-[12px]">/</span>
             <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-[#BBB]">Marketplace</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="relative">
+          <div className="flex items-center gap-2 flex-1 sm:flex-none">
+            <div className="relative flex-1 sm:flex-none">
               <i className="bi bi-search text-[13px] text-[#CCC] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text" value={q} onChange={e => setQ(e.target.value)}
                 placeholder="Search deals…"
-                className="font-sans text-[13px] font-light text-ink bg-white border border-black/[0.09] rounded-[8px] pl-8 pr-3 py-1.5 outline-none focus:border-[#1DC433] focus:shadow-[0_0_0_3px_rgba(45,252,68,0.08)] transition-all w-[200px] placeholder-[#CCC]"
+                className="font-sans text-[13px] font-light text-ink bg-white border border-black/[0.09] rounded-[8px] pl-8 pr-3 py-1.5 outline-none focus:border-[#1DC433] focus:shadow-[0_0_0_3px_rgba(45,252,68,0.08)] transition-all w-full sm:w-[200px] placeholder-[#CCC]"
               />
             </div>
             <ThemeToggle />
@@ -167,6 +167,7 @@ export default function MarketplaceClient() {
           <img src="/images/marketplace-hero.jpg" className="w-full h-28 object-cover rounded-[16px] mb-6 opacity-70" />
         */}
         <div className="mb-8" style={{ animation: 'up 0.5s cubic-bezier(0.22,1,0.36,1) both' }}>
+          <img src="/images/marketplace-hero.png" alt="" className="w-full h-20 sm:h-28 object-cover rounded-[14px] mb-5 opacity-75" style={{ objectPosition: "center 30%" }} />
           <span className="font-mono text-[10px] tracking-[0.14em] uppercase text-[#AAA] block mb-2">Open deals</span>
           <div className="flex items-end justify-between gap-4">
             <h1 className="font-serif text-[28px] sm:text-[36px] font-light tracking-[-0.04em] text-ink">
@@ -177,7 +178,7 @@ export default function MarketplaceClient() {
           <p className="text-[14px] font-light text-[#888] mt-1">Apply as an individual or with your pod. All deals are open for direct applications.</p>
         </div>
 
-        <div className="flex gap-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Filters sidebar */}
           <div className="w-[200px] flex-shrink-0 hidden lg:block" style={{ animation: 'up 0.5s 0.05s both' }}>
             <div className="sticky top-[78px] space-y-6">
@@ -226,7 +227,7 @@ export default function MarketplaceClient() {
           </div>
 
           {/* Mobile filter pills */}
-          <div className="lg:hidden flex-1">
+          <div className="lg:hidden w-full">
             <div className="flex gap-2 overflow-x-auto pb-2 mb-4 no-scrollbar">
               {[...CATEGORIES.slice(1)].map(c => (
                 <button key={c} type="button" onClick={() => setCategory(category === c ? 'All' : c)}
@@ -240,14 +241,14 @@ export default function MarketplaceClient() {
           </div>
 
           {/* Job list */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 w-full">
             {loading ? (
               <div className="space-y-4">
                 {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-[200px]" />)}
               </div>
             ) : jobs.length === 0 ? (
               <div className="bg-white border border-black/[0.07] rounded-[14px] px-8 py-16 text-center" style={{ animation: 'up 0.4s both' }}>
-                <i className="bi bi-briefcase text-[28px] text-[#CCC] block mb-4" />
+                <img src="/images/empty-deals.png" alt="" className="w-16 h-16 object-contain mx-auto mb-3 opacity-70" />
                 <p className="font-serif text-[20px] font-light text-ink mb-2">No deals found</p>
                 <p className="text-[13.5px] font-light text-[#AAA]">Try adjusting your filters or search query.</p>
               </div>

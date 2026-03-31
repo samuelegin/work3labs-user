@@ -1,0 +1,4 @@
+'use client'
+export const dynamic = 'force-dynamic'
+import PremiumClient from '@/components/user/PremiumClient'
+export default function PremiumPage() { return <PremiumClient /> }

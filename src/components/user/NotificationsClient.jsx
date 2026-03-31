@@ -81,8 +81,9 @@ export default function NotificationsClient() {
             <div className="p-5 space-y-3">{[1,2,3,4,5].map(i => <Skeleton key={i} className="h-16" />)}</div>
           ) : notifications.length === 0 ? (
             <div className="px-5 py-16 flex flex-col items-center text-center">
-              <div className="w-14 h-14 rounded-full bg-[#F4F4F2] flex items-center justify-center mb-4">
-                <i className="bi bi-bell text-[22px] text-[#CCC]" />
+              <img src="/images/action-icon.png" alt="" className="w-24 h-24 object-contain mb-2 opacity-70 mix-blend-multiply" />
+              <div className="w-10 h-10 rounded-full bg-[#F4F4F2] flex items-center justify-center mb-3">
+                <i className="bi bi-bell text-[18px] text-[#CCC]" />
               </div>
               <p className="font-serif text-[18px] font-light text-ink mb-2">All caught up</p>
               <p className="text-[13px] font-light text-[#AAA]">No notifications yet. Pod updates, job alerts, and ratings will appear here.</p>

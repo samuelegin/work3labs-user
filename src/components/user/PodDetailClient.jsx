@@ -803,7 +803,7 @@ export default function PodDetailClient({ podId }) {
 
             {podDeals.filter(d => (d.status ?? 'active') === dealFilter).length === 0 ? (
               <div className="bg-white border border-black/[0.07] rounded-[14px] px-8 py-12 text-center">
-                <i className="bi bi-briefcase text-[22px] text-[#CCC] block mb-3" />
+                <img src="/images/deals-icon.png" alt="" className="w-16 h-16 object-contain mx-auto mb-2 opacity-70 mix-blend-multiply" />
                 <p className="font-serif text-[18px] font-light text-ink mb-1">No {dealFilter} deals</p>
                 <p className="text-[13px] font-light text-[#AAA]">
                   {dealFilter === 'pending' ? 'Deals awaiting confirmation will appear here.' :

@@ -140,7 +140,7 @@ export default function ProjectDashboardClient() {
                     className="flex items-center gap-2.5 px-4 py-3 hover:bg-[#FAFAFA] transition-colors text-[13px] font-light text-ink border-b border-black/[0.05]">
                     <i className="bi bi-plus-circle text-[14px] text-[#AAA]" />Post a deal
                   </Link>
-                  <Link href="/blue-tick" onClick={() => setMenuOpen(false)}
+                  <Link href="/project/premium" onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-2.5 px-4 py-3 hover:bg-[#FAFAFA] transition-colors text-[13px] font-light text-ink border-b border-black/[0.05]">
                     <i className="bi bi-patch-check-fill text-[14px] text-[#F59E0B]" />Get Premium
                   </Link>
@@ -166,9 +166,10 @@ export default function ProjectDashboardClient() {
         */}
         <div className="relative bg-white border border-black/[0.07] rounded-[18px] px-6 sm:px-8 py-7 mb-8 overflow-hidden"
           style={{ animation: 'up 0.5s cubic-bezier(0.22,1,0.36,1) both' }}>
-          {/* Decorative gradient — replace with <img> once image is generated */}
+          {/* dashboard-hero + success-hero layered */}
+          <img src="/images/success-hero.png" alt="" className="absolute right-0 top-0 h-full w-auto max-w-[45%] object-contain object-right opacity-[0.10] pointer-events-none mix-blend-multiply" />
           <div className="absolute inset-0 pointer-events-none"
-            style={{ background: 'radial-gradient(ellipse at 80% 50%, rgba(29,196,51,0.07) 0%, transparent 60%), radial-gradient(ellipse at 20% 80%, rgba(59,130,246,0.05) 0%, transparent 50%)' }} />
+            style={{ background: 'radial-gradient(ellipse at 80% 50%, rgba(29,196,51,0.04) 0%, transparent 60%)' }} />
           <div className="relative">
             {loading
               ? <Skeleton className="h-8 w-48 mb-2" />
@@ -251,12 +252,7 @@ export default function ProjectDashboardClient() {
               <div className="p-5 space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-16" />)}</div>
             ) : filtered.length === 0 ? (
               <div className="px-6 py-14 flex flex-col items-center text-center">
-                {/*
-                  IMAGE PLACEHOLDER — Empty deals state
-                  PROMPT: "Minimalist illustration of an empty inbox or open briefcase floating in soft light, clean, flat design, pastel Web3 aesthetic, no text"
-                  REPLACE: add <img src="/images/empty-deals.png" className="w-24 h-24 object-contain mb-4 opacity-60" /> above the <i> below
-                */}
-                <i className="bi bi-briefcase text-[28px] text-[#CCC] block mb-4" />
+                <img src="/images/empty-deals.png" alt="" className="w-20 h-20 object-contain mb-3 opacity-70" />
                 <p className="font-serif text-[19px] font-light text-ink mb-2">
                   {filter === 'all' ? 'No deals yet' : `No ${filter} deals`}
                 </p>

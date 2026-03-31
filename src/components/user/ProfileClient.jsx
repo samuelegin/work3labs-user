@@ -292,7 +292,7 @@ export default function ProfileClient() {
 
         {/* Completion banner — shown until profile is 100% */}
         {!isComplete && (
-          <div className="bg-amber-50 border border-amber-200 rounded-[14px] px-5 py-4 flex items-start gap-3" style={{ animation: 'up 0.4s both' }}>
+          <div className="bg-amber-50 border border-amber-200 rounded-[14px] px-5 py-4 flex items-start gap-3 relative overflow-hidden" style={{ animation: 'up 0.4s both' }}>
             <i className="bi bi-exclamation-circle text-amber-500 text-[15px] flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="text-[13px] font-medium text-amber-800 mb-1">Complete your profile to join pods</p>
@@ -308,7 +308,9 @@ export default function ProfileClient() {
         )}
 
         {/* Avatar + name header */}
-        <div className="flex items-center gap-5 mb-2" style={{ animation: 'up 0.5s cubic-bezier(0.22,1,0.36,1) both' }}>
+        {/* earnings-hero.png = wallet + coins + growth arrow */}
+        <div className="flex items-center gap-5 mb-2 relative" style={{ animation: 'up 0.5s cubic-bezier(0.22,1,0.36,1) both' }}>
+          <img src="/images/earnings-hero.png" alt="" className="absolute right-0 top-1/2 -translate-y-1/2 h-16 w-auto object-contain opacity-[0.13] pointer-events-none" />
           <div className="relative group cursor-pointer flex-shrink-0" onClick={handleAvatarClick}>
             {avatarSrc ? (
               <img src={avatarSrc} alt="" className="w-[72px] h-[72px] rounded-full object-cover border-2 border-black/[0.07]" />

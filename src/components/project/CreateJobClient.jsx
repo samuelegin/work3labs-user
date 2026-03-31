@@ -5,6 +5,7 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createJob } from '@/services/api'
+import { useWallet } from '@/hooks/useWallet'
 
 const CATEGORIES = ['Community & Growth', 'Engineering', 'Design', 'Strategy & GTM', 'Marketing', 'Research', 'DevOps', 'Content', 'Other']
 
@@ -29,9 +30,12 @@ const STEPS = ['Basics', 'Scope & KPIs', 'Payment', 'Matching']
 
 export default function CreateJobClient() {
   const router = useRouter()
+  const { address, isConnected, openModal, ensureBase } = useWallet()
   const [step, setStep] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [errors, setErrors] = useState({})
+  const [walletStep, setWalletStep] = useState('idle')  // 'idle' | 'connect' | 'approving' | 'done' | 'error'
+  const [walletError, setWalletError] = useState('')
 
   // Step 0 — basics
   const [title, setTitle] = useState('')
@@ -102,6 +106,26 @@ export default function CreateJobClient() {
 
   async function handleSubmit() {
     if (submitting) return
+
+    // Step 1: ensure wallet is connected
+    if (!isConnected) {
+      setWalletStep('connect')
+      await openModal()
+      // user must click again after connecting
+      return
+    }
+
+    // Step 2: ensure on Base network
+    setWalletStep('approving')
+    setWalletError('')
+    const { error: netError } = await ensureBase()
+    if (netError) {
+      setWalletStep('error')
+      setWalletError(netError)
+      return
+    }
+
+    // Step 3: submit to API (real implementation: send tx to escrow contract first, then pass txHash)
     setSubmitting(true)
     setErrors(prev => ({ ...prev, server: null }))
 
@@ -117,10 +141,12 @@ export default function CreateJobClient() {
       matchType,
       requiredType,
       milestones: paymentStructure === 'milestone' ? milestones.map(m => ({ ...m, amount: Number(m.amount) })) : undefined,
+      walletAddress: address,
     })
 
     setSubmitting(false)
-    if (error) { setErrors({ server: error }); return }
+    setWalletStep('done')
+    if (error) { setErrors({ server: error }); setWalletStep('idle'); return }
     router.push(`/project/jobs/${data.id ?? data.jobId}`)
   }
 
@@ -354,7 +380,7 @@ export default function CreateJobClient() {
               <div>
                 <p className="font-mono text-[10px] tracking-[0.14em] uppercase text-[#AAA] mb-1">Step 4</p>
                 <h2 className="font-serif text-[22px] font-light tracking-[-0.04em] text-ink mb-1">Matching method</h2>
-                <p className="text-[13px] font-light text-[#AAA]">Choose how you want to find your Jobber or Pod.</p>
+                <p className="text-[13px] font-light text-[#AAA]">Choose how you want to find your freelancer or Pod.</p>
               </div>
 
               <div className="space-y-3">
@@ -363,13 +389,13 @@ export default function CreateJobClient() {
                     key: 'system',
                     label: 'System Match',
                     icon: 'bi-cpu',
-                    sub: 'Our system recommends the best available Pods or Jobbers based on your job requirements. You review and accept or ask for new recommendations.',
+                    sub: 'Our system recommends the best available Pods or Freelancers based on your job requirements. You review and accept or ask for new recommendations.',
                   },
                   {
                     key: 'manual',
                     label: 'Manual Interview',
                     icon: 'bi-chat-text',
-                    sub: 'Your job is posted to the public marketplace. Jobbers apply directly, and a DM chat opens with each applicant for you to interview them.',
+                    sub: 'Your job is posted to the public marketplace. Freelancers apply directly, and a DM chat opens with each applicant for you to interview them.',
                   },
                 ].map(m => (
                   <button key={m.key} type="button" onClick={() => setMatchType(m.key)}
@@ -403,8 +429,9 @@ export default function CreateJobClient() {
               </div>
 
               {/* Summary */}
-              <div className="bg-[#FAFAF8] border border-black/[0.07] rounded-[12px] px-5 py-5">
-                <p className="font-mono text-[9.5px] tracking-[0.1em] uppercase text-[#CCC] mb-3">Job summary</p>
+              <div className="bg-[#FAFAF8] border border-black/[0.07] rounded-[12px] px-5 py-5 relative overflow-hidden">
+                <img src="/images/deals-icon.png" alt="" className="absolute right-3 top-1/2 -translate-y-1/2 h-16 w-auto object-contain opacity-[0.1] pointer-events-none mix-blend-multiply" />
+                <p className="font-mono text-[9.5px] tracking-[0.1em] uppercase text-[#CCC] mb-3">Deal summary</p>
                 <div className="space-y-2">
                   {[
                     ['Title', title],
@@ -423,11 +450,36 @@ export default function CreateJobClient() {
                 </div>
               </div>
 
+              {/* Wallet status */}
+              {walletStep === 'connect' && !isConnected && (
+                <div className="flex items-start gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-[10px] px-4 py-3.5">
+                  <i className="bi bi-wallet2 text-[#3B82F6] text-[14px] flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-[13px] font-medium text-[#1D4ED8] mb-0.5">Connect your wallet</p>
+                    <p className="text-[12px] font-light text-[#3B82F6] leading-relaxed">Connect to approve the escrow transaction on Base. Click the button above once connected.</p>
+                  </div>
+                </div>
+              )}
+              {isConnected && (
+                <div className="flex items-center gap-2.5 bg-[#F4FAF7] border border-green-dark/15 rounded-[10px] px-4 py-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-dark flex-shrink-0" />
+                  <p className="font-mono text-[11px] text-green-dark truncate">{address?.slice(0,6)}…{address?.slice(-4)} connected on Base</p>
+                </div>
+              )}
+              {walletError && (
+                <div className="flex items-start gap-3 bg-red-50 border border-red-100 rounded-[10px] px-4 py-3">
+                  <i className="bi bi-exclamation-circle text-red-500 text-[13px] flex-shrink-0 mt-0.5" />
+                  <p className="text-[12px] text-red-600 font-light">{walletError}</p>
+                </div>
+              )}
               <div className="bg-amber-50 border border-amber-200 rounded-[10px] px-4 py-3.5 flex items-start gap-3">
                 <i className="bi bi-lock-fill text-amber-500 text-[13px] flex-shrink-0 mt-0.5" />
-                <p className="text-[12px] font-light text-amber-700 leading-relaxed">
-                  Your funds will be locked in escrow when you submit. They're only released after you verify deliverables or a dispute is resolved.
-                </p>
+                <div>
+                  <p className="text-[12.5px] font-medium text-amber-800 mb-0.5">Funds locked in escrow on Base</p>
+                  <p className="text-[12px] font-light text-amber-700 leading-relaxed">
+                    ${budgetUsd ? Number(budgetUsd).toLocaleString() : '0'} USDC will be locked when you approve the transaction in your wallet. Released only after you verify deliverables or a dispute resolves.
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -444,9 +496,14 @@ export default function CreateJobClient() {
                 Continue <i className="bi bi-arrow-right text-[13px]" />
               </button>
             ) : (
-              <button type="button" onClick={handleSubmit} disabled={submitting}
+              <button type="button" onClick={handleSubmit} disabled={submitting || walletStep === 'approving'}
                 className="flex items-center gap-2.5 py-3.5 px-6 bg-ink text-paper rounded-[10px] font-sans text-[14px] font-medium hover:bg-[#1A1A1A] transition-colors border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-                {submitting ? <><Spinner />Publishing job…</> : <><i className="bi bi-send-check text-[15px]" />Lock funds & publish</>}
+                {submitting || walletStep === 'approving'
+                  ? <><Spinner />{walletStep === 'approving' ? 'Waiting for wallet…' : 'Publishing…'}</>
+                  : !isConnected
+                    ? <><i className="bi bi-wallet2 text-[15px]" />Connect wallet to publish</>
+                    : <><i className="bi bi-send-check text-[15px]" />Approve & lock funds in escrow</>
+                }
               </button>
             )}
           </div>

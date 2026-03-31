@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { fetchProfile, updateProfile } from '@/services/api'
 import { uploadAvatar } from '@/lib/uploadAvatar'
+import { useWallet } from '@/hooks/useWallet'
 
 function Skeleton({ className }) {
   return <div className={`bg-black/[0.05] rounded-[8px] animate-pulse ${className}`} />
@@ -27,6 +28,7 @@ const INPUT_CLS = 'w-full font-sans text-[14px] font-light bg-white text-ink bor
 
 export default function ProjectProfileClient() {
   const fileRef  = useRef(null)
+  const { address: baseAddress, isConnected: baseConnected, openModal, disconnect } = useWallet()
   const [user,        setUser]        = useState(null)
   const [loading,     setLoading]     = useState(true)
   const [avatarPreview, setAvatarPreview] = useState(null)
@@ -75,6 +77,7 @@ export default function ProjectProfileClient() {
       email: email.trim() || undefined,
       bio: bio.trim() || undefined,
       avatarUrl,
+      baseWallet: baseConnected ? baseAddress : user?.baseWallet,
       socials: { website: website.trim() || undefined, twitter: twitter.trim() || undefined },
     })
     setSaving(false)
@@ -109,14 +112,8 @@ export default function ProjectProfileClient() {
         ) : (
           <>
             {/* ── AVATAR + NAME ─────────────────── */}
-            {/*
-              IMAGE PLACEHOLDER — Project cover / avatar
-              PROMPT: "Abstract Web3 project logo placeholder, geometric shapes, dark gradient, minimal, square format"
-              REPLACE: swap the <Identicon> or default avatar below with:
-              <img src="/images/project-avatar-placeholder.png" className="w-[80px] h-[80px] rounded-full object-cover" />
-              once your actual brand image is ready.
-            */}
-            <div className="flex items-center gap-5 mb-2" style={{ animation: 'up 0.5s cubic-bezier(0.22,1,0.36,1) both' }}>
+            <div className="flex items-center gap-5 mb-2 relative" style={{ animation: 'up 0.5s cubic-bezier(0.22,1,0.36,1) both' }}>
+              <img src="/images/wallet-earnings.png" alt="" className="absolute right-0 top-1/2 -translate-y-1/2 h-16 w-auto object-contain opacity-[0.12] pointer-events-none" />
               <div className="relative group cursor-pointer flex-shrink-0" onClick={() => fileRef.current?.click()}>
                 {avatarSrc
                   ? <img src={avatarSrc} alt="" className="w-[72px] h-[72px] rounded-full object-cover border-2 border-black/[0.07]" />
@@ -160,6 +157,37 @@ export default function ProjectProfileClient() {
                   <textarea className={INPUT_CLS + ' resize-none leading-relaxed'} rows={3} value={bio} onChange={e => setBio(e.target.value.slice(0, 280))} placeholder="What does your project do?" />
                   <p className="text-right font-mono text-[10px] text-[#CCC] mt-1">{bio.length}/280</p>
                 </div>
+              </div>
+            </div>
+
+            {/* ── WALLET ───────────────────────── */}
+            <div className="bg-white border border-black/[0.07] rounded-2xl overflow-hidden" style={{ animation: 'up 0.5s 0.09s both' }}>
+              <div className="px-6 py-4 border-b border-black/[0.06]">
+                <h2 className="font-sans text-[14.5px] font-medium text-ink tracking-[-0.02em]">Connected wallet</h2>
+              </div>
+              <div className="px-6 py-5 space-y-3">
+                <p className="text-[12.5px] font-light text-[#888] leading-relaxed">
+                  Connect your wallet to sign deal approvals and receive escrow payouts on Base.
+                </p>
+                {baseConnected && baseAddress ? (
+                  <div className="flex items-center gap-3 bg-[#F4FAF7] border border-green-dark/15 rounded-[10px] px-4 py-3">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-dark flex-shrink-0" />
+                    <p className="font-mono text-[12px] text-green-dark truncate flex-1">{baseAddress}</p>
+                    <span className="font-mono text-[9px] text-green-dark/60 flex-shrink-0">Base</span>
+                    <button type="button" onClick={() => disconnect()}
+                      className="font-mono text-[9px] tracking-[0.06em] uppercase text-[#CCC] hover:text-red-400 transition-colors bg-transparent border-none cursor-pointer p-0 ml-2 flex-shrink-0">
+                      Disconnect
+                    </button>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => openModal()}
+                    className="w-full flex items-center justify-center gap-2.5 border border-black/[0.09] rounded-[10px] px-4 py-3 font-sans text-[13.5px] font-light text-[#555] hover:border-black/20 hover:text-ink hover:bg-black/[0.02] transition-all bg-transparent cursor-pointer">
+                    <i className="bi bi-wallet2 text-[15px]" />Connect wallet (Base)
+                  </button>
+                )}
+                {user?.baseWallet && !baseConnected && (
+                  <p className="font-mono text-[10px] text-[#BBB]">Last connected: {user.baseWallet.slice(0,6)}…{user.baseWallet.slice(-4)}</p>
+                )}
               </div>
             </div>
 

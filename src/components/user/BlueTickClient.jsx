@@ -78,12 +78,8 @@ export default function BlueTickClient() {
         <div className="max-w-[760px] mx-auto" style={{ animation: 'up 0.5s cubic-bezier(0.22,1,0.36,1) both' }}>
 
           {/* Header */}
-          {/*
-            IMAGE PLACEHOLDER — Premium page hero
-            PROMPT: "Two glowing badges side by side, one blue sapphire and one gold, floating on a dark background with soft light rays, luxury Web3 aesthetic, no text"
-            REPLACE: add <img src="/images/premium-hero.jpg" className="w-full h-32 object-cover rounded-[18px] mb-8 opacity-80" /> here
-          */}
           <div className="text-center mb-10">
+            <img src="/images/wallet-earnings.png" alt="" className="w-28 h-28 object-contain mx-auto mb-2 opacity-90" />
             <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-[#AAA] mb-3">Upgrade your account</p>
             <h1 className="font-serif text-[32px] sm:text-[38px] font-light tracking-[-0.04em] text-ink mb-3">Get Premium</h1>
             <p className="text-[14px] font-light text-[#888] max-w-[400px] mx-auto leading-relaxed">
